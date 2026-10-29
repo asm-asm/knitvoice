@@ -211,6 +211,8 @@ await step("年齢制限", async () => {
   const attributes = {};
   for (const key of none) if (key in declaration.attributes) attributes[key] = "NONE";
   for (const key of no) if (key in declaration.attributes) attributes[key] = false;
+  // 新しく必須になった項目（取得結果に含まれないことがある）
+  attributes.socialMedia = false;
   await api("PATCH", `/v1/ageRatingDeclarations/${declaration.id}`, {
     data: { type: "ageRatingDeclarations", id: declaration.id, attributes },
   });
