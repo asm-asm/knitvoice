@@ -9,6 +9,8 @@ final class Speaker: NSObject, AVSpeechSynthesizerDelegate {
 
     private(set) var isSpeaking = false
     private(set) var lastFinishedAt: Date?
+    /// 最後に読み上げた（読み上げ中の）文。音声認識で自分の声を除くのに使う
+    @ObservationIgnored private(set) var lastText = ""
 
     @ObservationIgnored private let synthesizer = AVSpeechSynthesizer()
     @ObservationIgnored private var currentUtterance: AVSpeechUtterance?
@@ -29,6 +31,7 @@ final class Speaker: NSObject, AVSpeechSynthesizerDelegate {
         utterance.pitchMultiplier = Self.pitch
         utterance.volume = 1.0
         currentUtterance = utterance
+        lastText = text
         isSpeaking = true
         synthesizer.speak(utterance)
     }

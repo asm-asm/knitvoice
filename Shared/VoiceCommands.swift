@@ -36,6 +36,28 @@ struct VoiceCommandMatcher {
         VoiceCommand.allCases.flatMap { vocabulary[$0] ?? [] }
     }
 
+    /// いちばん長い語の文字数（正規化後）
+    var maxWordLength: Int {
+        entries.map(\.word.count).max() ?? 0
+    }
+
+    /// 読み上げ中（と直後）に使う判定。＋1・−1 は聞き取るが、
+    /// 読み上げている文に含まれる語と、読み上げを聞き間違えやすい「今どこ」系（「2段目」→「何段目」など）は除く。
+    func forEchoWindow(spokenText: String) -> VoiceCommandMatcher {
+        let spoken = Self.normalize(spokenText)
+        var filtered: [VoiceCommand: [String]] = [:]
+        for command in [VoiceCommand.increment, .decrement] {
+            filtered[command] = (vocabulary[command] ?? []).filter { word in
+                let normalized = Self.normalize(word)
+                if spoken.contains(normalized) { return false }
+                // 「入りました」は「はいりました」と認識されることがある
+                if normalized == "はい" && spoken.contains("入") { return false }
+                return true
+            }
+        }
+        return VoiceCommandMatcher(vocabulary: filtered)
+    }
+
     /// 空白・句読点を除き、カタカナをひらがなにそろえる。1文字ずつの変換なので前方一致が保たれる。
     static func normalize(_ text: String) -> String {
         let stripped = String(text.filter { !$0.isWhitespace && !"、。,.!?！？・".contains($0) })
@@ -75,8 +97,10 @@ struct TranscriptCursor {
     }
 
     /// 読み上げ中など、判定せずにここまでを処理済みにする。
-    mutating func consumeAll(_ transcript: String) {
-        consumedCount = max(consumedCount, VoiceCommandMatcher.normalize(transcript).count)
+    /// keepingLast：末尾の何文字かは残す。途中結果で「つ」→「つぎ」と伸びる語を取りこぼさないため
+    mutating func consumeAll(_ transcript: String, keepingLast margin: Int = 0) {
+        let length = VoiceCommandMatcher.normalize(transcript).count
+        consumedCount = max(consumedCount, length - max(0, margin))
     }
 
     mutating func reset() {
@@ -106,8 +130,8 @@ struct CommandDebouncer {
 
 /// 自分の読み上げを拾ってカウントしないための判定。
 enum SpeechEchoGate {
-    /// 読み上げ終了後も無視を続ける秒数
-    static let defaultTail: TimeInterval = 0.5
+    /// 読み上げ終了後も読み上げ中と同じ扱いを続ける秒数（認識結果は少し遅れて届くため）
+    static let defaultTail: TimeInterval = 1.0
 
     static func shouldIgnore(
         isSpeaking: Bool,

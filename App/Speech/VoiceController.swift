@@ -68,16 +68,22 @@ final class VoiceController {
             if !engine.isRunning { state = .failed("音声認識が停止しました") }
         case .partial(let text), .final(let text):
             if !text.isEmpty { lastHeard = text }
-            // 読み上げ中（と終了後少し）は自分の声を拾わないよう、判定せず処理済みにする
-            if SpeechEchoGate.shouldIgnore(
+            // 読み上げ中（と終了後少し）は、読み上げている文に含まれる語を除いて判定する
+            let inEchoWindow = SpeechEchoGate.shouldIgnore(
                 isSpeaking: speaker?.isSpeaking ?? false,
                 lastFinishedAt: speaker?.lastFinishedAt,
                 now: Date()
-            ) {
-                cursor.consumeAll(text)
+            )
+            let activeMatcher = inEchoWindow
+                ? matcher.forEchoWindow(spokenText: speaker?.lastText ?? "")
+                : matcher
+            guard let command = cursor.nextCommand(in: text, matcher: activeMatcher) else {
+                // 自分の読み上げが、読み上げ後に通常の判定で拾われないよう処理済みにする
+                if inEchoWindow {
+                    cursor.consumeAll(text, keepingLast: matcher.maxWordLength - 1)
+                }
                 return
             }
-            guard let command = cursor.nextCommand(in: text, matcher: matcher) else { return }
             if debouncer.shouldAccept(command, at: Date()) {
                 onCommand?(command)
             }

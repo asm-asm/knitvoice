@@ -61,8 +61,41 @@ final class VoiceCommandTests: XCTestCase {
     func testEchoGate() {
         let now = Date(timeIntervalSince1970: 1000)
         XCTAssertTrue(SpeechEchoGate.shouldIgnore(isSpeaking: true, lastFinishedAt: nil, now: now))
-        XCTAssertTrue(SpeechEchoGate.shouldIgnore(isSpeaking: false, lastFinishedAt: now.addingTimeInterval(-0.3), now: now))
-        XCTAssertFalse(SpeechEchoGate.shouldIgnore(isSpeaking: false, lastFinishedAt: now.addingTimeInterval(-0.6), now: now))
+        XCTAssertTrue(SpeechEchoGate.shouldIgnore(isSpeaking: false, lastFinishedAt: now.addingTimeInterval(-0.6), now: now))
+        XCTAssertFalse(SpeechEchoGate.shouldIgnore(isSpeaking: false, lastFinishedAt: now.addingTimeInterval(-1.1), now: now))
         XCTAssertFalse(SpeechEchoGate.shouldIgnore(isSpeaking: false, lastFinishedAt: nil, now: now))
+    }
+
+    /// 読み上げ中でも、ユーザーの「次」「戻る」は数える
+    func testEchoWindowStillAcceptsUserCommands() {
+        let echo = matcher.forEchoWindow(spokenText: "2段目")
+        var cursor = TranscriptCursor()
+        XCTAssertEqual(cursor.nextCommand(in: "2段目 次", matcher: echo), .increment)
+        cursor.reset()
+        XCTAssertEqual(cursor.nextCommand(in: "2段目 戻る", matcher: echo), .decrement)
+    }
+
+    /// 読み上げ中は、読み上げている文の語と「今どこ」系を拾わない
+    func testEchoWindowExcludesOwnWords() {
+        let reminder = matcher.forEchoWindow(spokenText: "2段目。次の段は増し目です")
+        var cursor = TranscriptCursor()
+        XCTAssertNil(cursor.nextCommand(in: "2段目次の段は増し目です", matcher: reminder))
+        XCTAssertEqual(cursor.nextCommand(in: "2段目次の段は増し目です つぎ", matcher: reminder), .increment)
+
+        let setStarted = matcher.forEchoWindow(spokenText: "3セット目に入りました")
+        cursor.reset()
+        XCTAssertNil(cursor.nextCommand(in: "3セット目にはいりました", matcher: setStarted))
+
+        cursor.reset()
+        XCTAssertNil(cursor.nextCommand(in: "何段目", matcher: matcher.forEchoWindow(spokenText: "2段目")))
+    }
+
+    /// 処理済みにするとき末尾を残すので、途中結果で伸びた語も拾える
+    func testConsumeAllKeepsTailForGrowingWords() {
+        var cursor = TranscriptCursor()
+        let echo = matcher.forEchoWindow(spokenText: "2段目")
+        XCTAssertNil(cursor.nextCommand(in: "2段目つ", matcher: echo))
+        cursor.consumeAll("2段目つ", keepingLast: matcher.maxWordLength - 1)
+        XCTAssertEqual(cursor.nextCommand(in: "2段目つぎ", matcher: echo), .increment)
     }
 }
