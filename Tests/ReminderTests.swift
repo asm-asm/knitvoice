@@ -55,7 +55,7 @@ final class ReminderTests: XCTestCase {
         // T: 3 → 4（4段目を編み終えた）で知らせる
         let outcome = CounterEngine.increment(completedRows: 3, config: setConfig, memos: [memo])
         XCTAssertEqual(outcome.memos, [memo])
-        XCTAssertEqual(Phrases.increment(outcome, style: .full, speakMemos: true), "2回目。次の段はここで糸替えです")
+        XCTAssertEqual(Phrases.increment(outcome, style: .full, speakMemos: true), "3回目。次の段はここで糸替えです")
     }
 
     func testOnFinishMemoOnLastRowIsAnnouncedAtCompletion() {
