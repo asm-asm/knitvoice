@@ -55,6 +55,9 @@ struct ProjectListView: View {
                 }
             }
         }
+        .onAppear {
+            if DemoMode.isEnabled && DemoMode.screen == "paywall" { showingPaywall = true }
+        }
         .sheet(isPresented: $showingNewProject) { NewProjectView() }
         .sheet(isPresented: $showingPaywall) { PaywallView() }
         .sheet(isPresented: $showingSettings) { AppSettingsView() }

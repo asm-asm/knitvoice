@@ -107,6 +107,8 @@ struct PaywallView: View {
                     Group {
                         if let product = purchases.product {
                             Text("\(product.displayPrice)で購入（買い切り）")
+                        } else if DemoMode.isEnabled {
+                            Text("¥500で購入（買い切り）")
                         } else {
                             Text("価格を読み込み中…")
                         }
@@ -115,7 +117,7 @@ struct PaywallView: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
-                .disabled(purchases.product == nil || purchases.isPurchasing)
+                .disabled((purchases.product == nil && !DemoMode.isEnabled) || purchases.isPurchasing)
 
                 Button("購入を復元") {
                     Task { await purchases.restore() }

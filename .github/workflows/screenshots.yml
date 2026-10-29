@@ -57,6 +57,8 @@ jobs:
           shoot 2_project_settings -demoScreen projectSettings
           shoot 3_history -demoScreen history
           shoot 4_list -demoScreen list
+          # アプリ内課金の審査用（App Store の掲載用には使わない）
+          shoot review_paywall -demoScreen paywall
           xcrun simctl ui "$UDID" appearance dark
           shoot 5_counter_dark -demoScreen counter
 
