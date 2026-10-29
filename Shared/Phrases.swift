@@ -40,7 +40,7 @@ enum Phrases {
 
     static func reminder(_ text: String) -> String { "次の段は\(text)です" }
 
-    static func memo(_ text: String) -> String { "メモ、\(text)" }
+    static func memo(_ text: String) -> String { "次の段は\(text)です" }
 
     /// +1 時の読み上げをひとつにまとめる。読むものがなければ nil。
     static func increment(_ outcome: IncrementOutcome, style: RowReadingStyle, speakMemos: Bool) -> String? {
