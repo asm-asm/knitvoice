@@ -41,10 +41,12 @@ final class VoiceController {
         }
         engine.contextualStrings = matcher.contextualStrings
         engine.onUpdate = { [weak self] update in self?.handle(update) }
+        AudioSession.setRecording(true)
         do {
             try engine.start()
             state = .listening
         } catch {
+            AudioSession.setRecording(false)
             state = .failed(error.localizedDescription)
         }
     }
@@ -52,6 +54,8 @@ final class VoiceController {
     func stop() {
         engine.stop()
         cursor.reset()
+        // マイクOFFの間は再生用のカテゴリに戻して、読み上げの音量を大きくする
+        AudioSession.setRecording(false)
         if isListening { state = .off }
     }
 

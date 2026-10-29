@@ -4,12 +4,15 @@ import AVFoundation
 @MainActor
 @Observable
 final class Speaker: NSObject, AVSpeechSynthesizerDelegate {
+    /// 少し高めの声にする（1.0 が標準、0.5〜2.0）
+    static let pitch: Float = 1.2
+
     private(set) var isSpeaking = false
     private(set) var lastFinishedAt: Date?
 
     @ObservationIgnored private let synthesizer = AVSpeechSynthesizer()
     @ObservationIgnored private var currentUtterance: AVSpeechUtterance?
-    @ObservationIgnored private let voice = AVSpeechSynthesisVoice(language: "ja-JP")
+    @ObservationIgnored private let voice = Speaker.bestJapaneseVoice()
 
     override init() {
         super.init()
@@ -23,6 +26,8 @@ final class Speaker: NSObject, AVSpeechSynthesizerDelegate {
         let utterance = AVSpeechUtterance(string: text)
         utterance.voice = voice
         utterance.rate = AVSpeechUtteranceDefaultSpeechRate
+        utterance.pitchMultiplier = Self.pitch
+        utterance.volume = 1.0
         currentUtterance = utterance
         isSpeaking = true
         synthesizer.speak(utterance)
@@ -30,6 +35,14 @@ final class Speaker: NSObject, AVSpeechSynthesizerDelegate {
 
     func stop() {
         synthesizer.stopSpeaking(at: .immediate)
+    }
+
+    /// 端末に入っている日本語の声のうち、いちばん高品質なもの（プレミアム → 拡張 → 標準）。
+    /// 「設定 → アクセシビリティ → 読み上げコンテンツ → 声 → 日本語」で追加した声も使われる。
+    private static func bestJapaneseVoice() -> AVSpeechSynthesisVoice? {
+        let japanese = AVSpeechSynthesisVoice.speechVoices().filter { $0.language == "ja-JP" }
+        return japanese.max { $0.quality.rawValue < $1.quality.rawValue }
+            ?? AVSpeechSynthesisVoice(language: "ja-JP")
     }
 
     nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {

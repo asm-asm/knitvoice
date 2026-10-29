@@ -37,8 +37,9 @@ final class AppleSpeechRecognitionEngine: SpeechRecognitionEngine {
     /// 一定時間でタスクを作り直す（Appleの1分制限より手前）
     static let maxTaskDuration: TimeInterval = 50
     static let errorRetryDelay: TimeInterval = 0.5
-    /// エコーキャンセル（要実機検証）
-    var useVoiceProcessing = true
+    /// エコーキャンセル。有効にすると読み上げの音量がかなり下がるため既定はOFF
+    /// （自分の読み上げを拾う対策は SpeechEchoGate で行う）
+    var useVoiceProcessing = false
 
     var onUpdate: (@MainActor (RecognitionUpdate) -> Void)?
     var contextualStrings: [String] = []
