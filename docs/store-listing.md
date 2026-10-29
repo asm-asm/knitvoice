@@ -65,7 +65,7 @@ App Store Review Guidelines に合わせた注意点：
 - サポート：https://asm-asm.github.io/knitvoice/
 - プライバシーポリシー：https://asm-asm.github.io/knitvoice/privacy.html
 
-## このバージョンの新機能（1.0.0）
+## このバージョンの新機能（1.0）
 
 ## 著作権
 © 2026 Sammy
