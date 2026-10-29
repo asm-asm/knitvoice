@@ -85,9 +85,25 @@ CATALOG = """{
 }
 """
 
+def load_icon(path: Path) -> Image.Image:
+    """外部で作った画像を、透過なし・正方形・1024x1024 にそろえる。"""
+    source = Image.open(path)
+    if source.mode in ("RGBA", "LA", "P"):
+        source = source.convert("RGBA")
+        background = Image.new("RGBA", source.size, source.getpixel((0, 0))[:3] + (255,))
+        source = Image.alpha_composite(background, source)
+    source = source.convert("RGB")
+    side = min(source.size)
+    left, top = (source.width - side) // 2, (source.height - side) // 2
+    return source.crop((left, top, left + side, top + side)).resize((SIZE, SIZE), Image.LANCZOS)
+
+
 if __name__ == "__main__":
+    import sys
+
     root = Path(__file__).resolve().parent.parent
-    icon = make_icon()
+    # python scripts/make-icon.py 画像.png  → その画像をアイコンにする（省略時は仮アイコンを描く）
+    icon = load_icon(Path(sys.argv[1])) if len(sys.argv) > 1 else make_icon()
     for folder, platform in [("App", "ios"), ("Watch", "watchos")]:
         catalog = root / folder / "Assets.xcassets"
         iconset = catalog / "AppIcon.appiconset"
