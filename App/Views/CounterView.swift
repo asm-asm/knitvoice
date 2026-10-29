@@ -143,7 +143,7 @@ private struct CounterScreen: View {
             }
             Button("キャンセル", role: .cancel) { memoText = "" }
         } message: {
-            Text(RowLabel.describe(row: project.completedRows + 1, config: project.config))
+            Text("\(RowLabel.describe(row: project.completedRows + 1, config: project.config))\nこの段を編み終えて＋1したときに知らせます")
         }
     }
 

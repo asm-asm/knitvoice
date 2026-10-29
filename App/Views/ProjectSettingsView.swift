@@ -62,7 +62,7 @@ struct ProjectSettingsView: View {
                         } label: {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(memo.text)
-                                Text(RowLabel.describe(row: memo.row, config: project.config))
+                                Text("\(RowLabel.describe(row: memo.row, config: project.config))・\(memo.timing.label)")
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                             }
@@ -223,18 +223,29 @@ struct MemoEditView: View {
     @Environment(AppServices.self) private var services
     @State private var text: String
     @State private var row: Int
+    @State private var timing: MemoTiming
 
     init(project: Project, memo: RowMemo?) {
         self.project = project
         self.memo = memo
         _text = State(initialValue: memo?.text ?? "")
         _row = State(initialValue: memo?.row ?? project.completedRows + 1)
+        _timing = State(initialValue: memo?.timing ?? .onEnter)
     }
 
     var body: some View {
         Form {
             Section("段") {
                 RowInputView(title: "段", row: $row, config: project.config)
+            }
+            Section {
+                Picker("知らせるタイミング", selection: $timing) {
+                    ForEach(MemoTiming.allCases) { timing in
+                        Text(timing.label).tag(timing)
+                    }
+                }
+            } footer: {
+                Text("＋1してこの段に入ったとき、またはこの段を編み終えて＋1したときに、表示して読み上げます。")
             }
             Section("メモ") {
                 TextField("例：ここで糸替え", text: $text, axis: .vertical)
@@ -270,6 +281,7 @@ struct MemoEditView: View {
             target.project = project
         }
         target.row = max(1, row)
+        target.timing = timing
         target.text = text.trimmingCharacters(in: .whitespacesAndNewlines)
         services.counter.save()
         dismiss()

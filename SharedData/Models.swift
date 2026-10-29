@@ -98,15 +98,22 @@ final class RowMemo {
     /// 通算の段番号（1始まり）
     var row: Int = 1
     var text: String = ""
+    var timingRaw: String = MemoTiming.onEnter.rawValue
     var createdAt: Date = Date()
     var project: Project?
 
-    init(row: Int, text: String) {
+    init(row: Int, text: String, timing: MemoTiming = .onEnter) {
         self.row = row
         self.text = text
+        self.timingRaw = timing.rawValue
     }
 
-    var spec: MemoSpec { MemoSpec(id: id, row: row, text: text) }
+    var timing: MemoTiming {
+        get { MemoTiming(rawValue: timingRaw) ?? .onEnter }
+        set { timingRaw = newValue.rawValue }
+    }
+
+    var spec: MemoSpec { MemoSpec(id: id, row: row, text: text, timing: timing) }
 }
 
 /// カウントの入力元。

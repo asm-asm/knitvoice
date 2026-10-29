@@ -17,7 +17,7 @@ final class AppSettings {
     var rowReadingStyle: RowReadingStyle {
         didSet { defaults.set(rowReadingStyle.rawValue, forKey: Key.rowReadingStyle) }
     }
-    /// メモを読み上げる（デフォルトOFF）
+    /// メモを読み上げる
     var speakMemos: Bool {
         didSet { defaults.set(speakMemos, forKey: Key.speakMemos) }
     }
@@ -40,7 +40,7 @@ final class AppSettings {
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         rowReadingStyle = RowReadingStyle(rawValue: defaults.string(forKey: Key.rowReadingStyle) ?? "") ?? .full
-        speakMemos = defaults.bool(forKey: Key.speakMemos)
+        speakMemos = defaults.object(forKey: Key.speakMemos) as? Bool ?? true
         speechEnabled = defaults.object(forKey: Key.speechEnabled) as? Bool ?? true
         earphoneButtonsEnabled = defaults.bool(forKey: Key.earphoneButtonsEnabled)
         commandDebounceInterval = defaults.object(forKey: Key.commandDebounceInterval) as? Double

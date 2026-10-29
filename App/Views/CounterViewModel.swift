@@ -102,15 +102,15 @@ final class CounterViewModel {
         services.speaker.speak(Phrases.current(completedRows: project.completedRows, config: project.config))
     }
 
-    /// 「この段にメモ」：今編んでいる段に追加
+    /// 「この段にメモ」：今編んでいる段に追加し、この段を編み終えて＋1したときに読む
     func addMemo(_ text: String) {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty, let project = services.counter.project(id: projectID) else { return }
-        let memo = RowMemo(row: project.completedRows + 1, text: trimmed)
+        let memo = RowMemo(row: project.completedRows + 1, text: trimmed, timing: .onFinish)
         services.context.insert(memo)
         memo.project = project
         services.counter.save()
-        banners = [Banner(systemImage: "note.text", text: "メモを追加：\(trimmed)")]
+        banners = [Banner(systemImage: "note.text", text: "メモを追加：\(trimmed)（この段を編み終えたら知らせます）")]
     }
 
     func dismiss(_ banner: Banner) {

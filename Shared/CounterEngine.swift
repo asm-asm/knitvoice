@@ -153,11 +153,15 @@ enum CounterEngine {
             reminders: [],
             memos: []
         )
-        // 判定は「今編んでいる段」= T + 1。完了後は通知しない。
-        if !isFinished(completedRows: next, config: config) {
+        // リマインドの判定は「今編んでいる段」= T + 1。完了後は通知しない。
+        let finished = isFinished(completedRows: next, config: config)
+        if !finished {
             let row = next + 1
             outcome.reminders = reminders.filter { $0.rule.matches(row: row, config: config) }
-            outcome.memos = memos.filter { $0.row == row }
+        }
+        // メモは「入った段」のもの、または「編み終えた段」のもの。編み終えたメモは完了時も読む
+        outcome.memos = memos.filter { memo in
+            memo.isDue(afterIncrementTo: next) && (!finished || memo.timing == .onFinish)
         }
         return outcome
     }

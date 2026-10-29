@@ -47,6 +47,35 @@ final class ReminderTests: XCTestCase {
         )
     }
 
+    /// 「この段にメモ」：その段を編み終えて＋1したときに知らせる
+    func testOnFinishMemoIsAnnouncedWhenLeavingRow() {
+        let memo = MemoSpec(id: UUID(), row: 4, text: "ここで糸替え", timing: .onFinish)
+        // T: 2 → 3（4段目に入る）ではまだ
+        XCTAssertTrue(CounterEngine.increment(completedRows: 2, config: setConfig, memos: [memo]).memos.isEmpty)
+        // T: 3 → 4（4段目を編み終えた）で知らせる
+        let outcome = CounterEngine.increment(completedRows: 3, config: setConfig, memos: [memo])
+        XCTAssertEqual(outcome.memos, [memo])
+        XCTAssertEqual(Phrases.increment(outcome, style: .full, speakMemos: true), "2回目。メモ、ここで糸替え")
+    }
+
+    func testOnFinishMemoOnLastRowIsAnnouncedAtCompletion() {
+        let memo = MemoSpec(id: UUID(), row: 18, text: "糸始末", timing: .onFinish)
+        let onEnter = MemoSpec(id: UUID(), row: 19, text: "出ない", timing: .onEnter)
+        let outcome = CounterEngine.increment(completedRows: 17, config: setConfig, memos: [memo, onEnter])
+        XCTAssertEqual(outcome.event, .finished)
+        XCTAssertEqual(outcome.memos, [memo])
+    }
+
+    func testMemoDecodesWithoutTiming() throws {
+        let json = #"{"id":"6B0C1F4E-6A2B-4E0D-9C2B-1F4D2E6A7B10","row":3,"text":"古い形式"}"#
+        let memo = try JSONDecoder().decode(MemoSpec.self, from: Data(json.utf8))
+        XCTAssertEqual(memo.timing, .onEnter)
+        let roundTrip = try JSONDecoder().decode(MemoSpec.self, from: JSONEncoder().encode(
+            MemoSpec(id: UUID(), row: 1, text: "a", timing: .onFinish)
+        ))
+        XCTAssertEqual(roundTrip.timing, .onFinish)
+    }
+
     func testSilentReminderIsShownButNotSpoken() {
         let outcome = CounterEngine.increment(completedRows: 2, config: setConfig, reminders: [spec(.atRow(4), speak: false)])
         XCTAssertEqual(outcome.reminders.count, 1)

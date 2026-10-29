@@ -124,10 +124,51 @@ enum UpcomingReminder {
     }
 }
 
+/// メモを読み上げ・表示するタイミング。
+enum MemoTiming: String, Codable, CaseIterable, Identifiable {
+    /// その段に入ったとき（先の段に付けておくメモ）
+    case onEnter
+    /// その段を編み終えて＋1したとき（カウンター画面の「この段にメモ」）
+    case onFinish
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .onEnter: return "この段に入ったとき"
+        case .onFinish: return "この段を編み終えたとき"
+        }
+    }
+}
+
 /// 永続化層から切り離した段ごとのメモ。
 struct MemoSpec: Equatable, Codable, Identifiable {
     var id: UUID
     /// 通算の段番号（1始まり）
     var row: Int
     var text: String
+    var timing: MemoTiming = .onEnter
+
+    private enum CodingKeys: String, CodingKey {
+        case id, row, text, timing
+    }
+
+    /// ＋1して completedRows になったときに読むメモか
+    func isDue(afterIncrementTo completedRows: Int) -> Bool {
+        switch timing {
+        case .onEnter: return row == completedRows + 1
+        case .onFinish: return row == completedRows
+        }
+    }
+}
+
+extension MemoSpec {
+    /// timing がない古いデータ（Watchのキャッシュなど）も読めるようにする
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        row = try container.decode(Int.self, forKey: .row)
+        text = try container.decode(String.self, forKey: .text)
+        timing = try container.decodeIfPresent(MemoTiming.self, forKey: .timing) ?? .onEnter
+    }
 }
