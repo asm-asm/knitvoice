@@ -3,7 +3,7 @@ import AVFoundation
 enum AudioSession {
     /// allowMixing：他アプリの音楽と同時に使う（イヤホンボタンモードでは false。再生中アプリになる必要があるため）
     static func configure(allowMixing: Bool) {
-        var options: AVAudioSession.CategoryOptions = [.defaultToSpeaker, .allowBluetooth, .allowBluetoothA2DP]
+        var options: AVAudioSession.CategoryOptions = [.defaultToSpeaker, .allowBluetoothHFP, .allowBluetoothA2DP]
         if allowMixing {
             options.insert(.mixWithOthers)
         }
