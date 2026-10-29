@@ -27,6 +27,8 @@ targets:
       - SharedData
       - path: KnitVoice.storekit
         buildPhase: none
+      - path: PrivacyManifests/App/PrivacyInfo.xcprivacy
+        buildPhase: resources
     info:
       path: Config/KnitVoice-Info.plist
       properties:
@@ -68,6 +70,8 @@ targets:
       - Widget
       - Shared
       - SharedData
+      - path: PrivacyManifests/Widget/PrivacyInfo.xcprivacy
+        buildPhase: resources
     info:
       path: Config/KnitVoiceWidgets-Info.plist
       properties:
@@ -92,6 +96,8 @@ targets:
     sources:
       - Watch
       - Shared
+      - path: PrivacyManifests/Watch/PrivacyInfo.xcprivacy
+        buildPhase: resources
     info:
       path: Config/KnitVoiceWatch-Info.plist
       properties:

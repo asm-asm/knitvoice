@@ -31,6 +31,7 @@ private struct CounterScreen: View {
     @State private var showingProjectSettings = false
     @State private var showingHistory = false
     @State private var showingMemoPrompt = false
+    @State private var showingPermissionIntro = false
     @State private var memoText = ""
 
     @ScaledMetric(relativeTo: .largeTitle) private var primarySize: CGFloat = 76
@@ -70,6 +71,13 @@ private struct CounterScreen: View {
         // 設定はシートで開く（push だと onDisappear でマイクが止まるため）
         .sheet(isPresented: $showingProjectSettings) {
             ProjectSettingsView(project: project)
+        }
+        // 初めてマイクをオンにするときだけ、理由の説明 → OS の許可ダイアログ
+        .fullScreenCover(isPresented: $showingPermissionIntro) {
+            PermissionIntroView {
+                showingPermissionIntro = false
+                model?.toggleMicrophone()
+            }
         }
         .sheet(isPresented: $showingHistory) {
             HistoryView(project: project)
@@ -234,7 +242,11 @@ private struct CounterScreen: View {
             .accessibilityLabel(settings.speechEnabled ? "読み上げをオフ" : "読み上げをオン")
 
             Button {
-                model.toggleMicrophone()
+                if settings.hasSeenPermissionIntro || Permissions.allGranted || model.voice.isListening {
+                    model.toggleMicrophone()
+                } else {
+                    showingPermissionIntro = true
+                }
             } label: {
                 Image(systemName: model.voice.isListening ? "mic.fill" : "mic.slash")
                     .font(.system(size: micSize * 0.42, weight: .bold))

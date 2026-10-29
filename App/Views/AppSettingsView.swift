@@ -151,8 +151,12 @@ struct PaywallView: View {
     }
 }
 
-/// 初回起動時、権限をリクエストする前に理由を説明する。
+/// 初めてマイクをオンにするとき、権限をリクエストする前に理由を説明する。
+/// 審査ガイドライン 5.1.1(iv) に合わせ、ボタンは「次へ」だけ（「許可」という言葉や、飛ばす・後回しにするボタンは置かない）。
 struct PermissionIntroView: View {
+    /// 権限の確認が終わったとき（許可・不許可どちらでも）
+    let onFinish: () -> Void
+
     @Environment(AppSettings.self) private var settings
     @State private var requesting = false
 
@@ -176,24 +180,25 @@ struct PermissionIntroView: View {
                     "聞き取った声を文字にして、コマンドかどうかを判定します。対応端末では端末内だけで処理します。音声を保存することはありません。"
                 )
             }
+            Text("このあと、マイクと音声認識の使用について確認が表示されます。")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
             Spacer()
             Button {
                 requesting = true
                 Task {
                     _ = await Permissions.requestAll()
                     settings.hasSeenPermissionIntro = true
+                    onFinish()
                 }
             } label: {
-                Text("許可して始める")
+                Text("次へ")
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
             .disabled(requesting)
-
-            Button("あとで（タップだけで使う）") {
-                settings.hasSeenPermissionIntro = true
-            }
         }
         .padding(24)
     }

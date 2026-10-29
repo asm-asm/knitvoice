@@ -20,7 +20,6 @@ struct KnitVoiceApp: App {
 
 struct RootView: View {
     @Environment(AppServices.self) private var services
-    @Environment(AppSettings.self) private var settings
     @Environment(\.scenePhase) private var scenePhase
     /// プロジェクトIDで遷移する。ストアを読み直してビュー階層を作り直しても開いている画面を保てる
     @State private var path: [UUID] = DemoMode.isEnabled && (DemoMode.screen ?? "list") != "list"
@@ -36,12 +35,6 @@ struct RootView: View {
         }
         .modelContainer(services.container)
         .id(services.storeGeneration)
-        .fullScreenCover(isPresented: Binding(
-            get: { !settings.hasSeenPermissionIntro && !DemoMode.isEnabled },
-            set: { if !$0 { settings.hasSeenPermissionIntro = true } }
-        )) {
-            PermissionIntroView()
-        }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { services.sceneDidBecomeActive() }
         }
