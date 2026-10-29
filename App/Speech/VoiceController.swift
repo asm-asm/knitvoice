@@ -51,6 +51,12 @@ final class VoiceController {
         }
     }
 
+    /// スクリーンショット用：マイクを使わずに「聞いている」表示にする
+    func showDemo(heard: String) {
+        state = .listening
+        lastHeard = heard
+    }
+
     func stop() {
         engine.stop()
         cursor.reset()

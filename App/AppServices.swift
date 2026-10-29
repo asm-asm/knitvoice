@@ -17,11 +17,16 @@ final class AppServices {
     @ObservationIgnored private var knownWriteToken: String?
 
     init() {
-        KnitVoiceStore.migrateLegacyStoreIfNeeded()
+        if !DemoMode.isEnabled {
+            KnitVoiceStore.migrateLegacyStoreIfNeeded()
+        }
         do {
-            container = try KnitVoiceStore.makeContainer()
+            container = try KnitVoiceStore.makeContainer(inMemory: DemoMode.isEnabled)
         } catch {
             fatalError("ストアを開けませんでした: \(error)")
+        }
+        if DemoMode.isEnabled {
+            DemoMode.seed(container.mainContext)
         }
         knownWriteToken = StoreChangeMarker.currentToken
         sync = PhoneSyncService(services: self)
@@ -42,7 +47,7 @@ final class AppServices {
     @discardableResult
     func reloadIfChangedExternally() -> Bool {
         let token = StoreChangeMarker.currentToken
-        guard token != knownWriteToken else { return false }
+        guard token != knownWriteToken, !DemoMode.isEnabled else { return false }
         do {
             container = try KnitVoiceStore.makeContainer()
             knownWriteToken = token

@@ -77,6 +77,13 @@ private struct CounterScreen: View {
         .onAppear {
             if model == nil {
                 model = CounterViewModel(projectID: project.id, services: services, settings: settings)
+                if DemoMode.isEnabled {
+                    switch DemoMode.screen {
+                    case "history": showingHistory = true
+                    case "projectSettings": showingProjectSettings = true
+                    default: model?.showDemoState()
+                    }
+                }
             }
             model?.activate()
         }

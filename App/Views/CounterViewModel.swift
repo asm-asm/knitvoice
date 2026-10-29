@@ -113,6 +113,12 @@ final class CounterViewModel {
         banners = [Banner(systemImage: "note.text", text: "メモを追加：\(trimmed)（この段を編み終えたら知らせます）")]
     }
 
+    /// スクリーンショット用：マイクON・リマインドのバナーを表示した状態
+    func showDemoState() {
+        banners = [Banner(systemImage: "bell.fill", text: "次の段は増し目")]
+        voice.showDemo(heard: "次")
+    }
+
     func dismiss(_ banner: Banner) {
         banners.removeAll { $0.id == banner.id }
     }

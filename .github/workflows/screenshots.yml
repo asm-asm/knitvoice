@@ -1,0 +1,120 @@
+# App Store 用のスクリーンショットを、シミュレータで見本データ（起動引数 -demo）を表示して撮る。
+# 結果は Actions の Artifacts「store-screenshots」からダウンロードできる。
+name: Screenshots
+
+on:
+  workflow_dispatch:
+
+jobs:
+  iphone:
+    runs-on: macos-15
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Generate project
+        run: |
+          brew install xcodegen
+          xcodegen generate
+
+      - name: Build for iPhone 6.9-inch simulator
+        run: |
+          UDID=$(xcrun simctl list devices available -j | python3 -c '
+          import json, sys
+          devices = json.load(sys.stdin)["devices"]
+          runtimes = sorted((r for r in devices if "iOS" in r), reverse=True)
+          print(next(d["udid"] for r in runtimes for d in devices[r] if "Pro Max" in d["name"]))')
+          echo "UDID=$UDID" >> "$GITHUB_ENV"
+          xcrun simctl list devices | grep "$UDID"
+          xcodebuild build \
+            -project KnitVoice.xcodeproj \
+            -scheme KnitVoice \
+            -destination "id=$UDID" \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Take screenshots
+        run: |
+          mkdir -p store/iphone
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl bootstatus "$UDID" -b
+          xcrun simctl install "$UDID" build/Build/Products/Debug-iphonesimulator/KnitVoice.app
+          xcrun simctl ui "$UDID" appearance light
+          xcrun simctl status_bar "$UDID" override --time "9:41" --batteryState charged --batteryLevel 100 \
+            --wifiBars 3 --cellularMode active --cellularBars 4
+          shoot() {
+            name="$1"; shift
+            xcrun simctl launch "$UDID" com.sammy.knitvoice -demo "$@"
+            sleep 10
+            xcrun simctl io "$UDID" screenshot "store/iphone/$name.png"
+            xcrun simctl terminate "$UDID" com.sammy.knitvoice || true
+          }
+          shoot 1_counter -demoScreen counter
+          shoot 2_project_settings -demoScreen projectSettings
+          shoot 3_history -demoScreen history
+          shoot 4_list -demoScreen list
+          xcrun simctl ui "$UDID" appearance dark
+          shoot 5_counter_dark -demoScreen counter
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: store-screenshots-iphone
+          path: store
+
+  watch:
+    runs-on: macos-15
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Generate project
+        run: |
+          brew install xcodegen
+          xcodegen generate
+
+      - name: Build for Apple Watch simulator
+        run: |
+          UDID=$(xcrun simctl list devices available -j | python3 -c '
+          import json, sys
+          devices = json.load(sys.stdin)["devices"]
+          runtimes = sorted((r for r in devices if "watchOS" in r), reverse=True)
+          names = [d for r in runtimes for d in devices[r]]
+          pick = next((d for d in names if "Ultra" in d["name"]), None) or next(d for d in names if "46mm" in d["name"] or "45mm" in d["name"])
+          print(pick["udid"])')
+          echo "UDID=$UDID" >> "$GITHUB_ENV"
+          xcrun simctl list devices | grep "$UDID"
+          xcodebuild build \
+            -project KnitVoice.xcodeproj \
+            -scheme KnitVoiceWatch \
+            -destination "id=$UDID" \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Take screenshots
+        run: |
+          mkdir -p store/watch
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl bootstatus "$UDID" -b
+          xcrun simctl install "$UDID" build/Build/Products/Debug-watchsimulator/KnitVoiceWatch.app
+          shoot() {
+            name="$1"; shift
+            xcrun simctl launch "$UDID" com.sammy.knitvoice.watchkitapp -demo "$@"
+            sleep 10
+            xcrun simctl io "$UDID" screenshot "store/watch/$name.png"
+            xcrun simctl terminate "$UDID" com.sammy.knitvoice.watchkitapp || true
+          }
+          shoot 1_counter -demoScreen counter
+          shoot 2_list -demoScreen list
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: store-screenshots-watch
+          path: store

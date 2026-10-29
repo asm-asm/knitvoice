@@ -59,7 +59,9 @@ struct AppSettingsView: View {
                 }
 
                 Section("このアプリについて") {
+                    Link("サポート・よくある質問", destination: AppConstants.supportURL)
                     Link("プライバシーポリシー", destination: AppConstants.privacyPolicyURL)
+                    Link("利用規約", destination: AppConstants.termsURL)
                     LabeledContent("バージョン", value: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "-")
                 }
             }
@@ -124,6 +126,12 @@ struct PaywallView: View {
                         .font(.footnote)
                         .foregroundStyle(.red)
                 }
+
+                HStack(spacing: 16) {
+                    Link("利用規約", destination: AppConstants.termsURL)
+                    Link("プライバシーポリシー", destination: AppConstants.privacyPolicyURL)
+                }
+                .font(.footnote)
             }
             .padding()
             .toolbar {

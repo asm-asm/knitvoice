@@ -14,9 +14,10 @@ struct KnitVoiceWatchApp: App {
 
 struct WatchRootView: View {
     @Environment(WatchStore.self) private var store
+    @State private var path: [UUID] = []
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $path) {
             Group {
                 if store.projects.isEmpty {
                     ContentUnavailableView(
@@ -41,6 +42,13 @@ struct WatchRootView: View {
             .navigationTitle("プロジェクト")
             .navigationDestination(for: UUID.self) { id in
                 WatchCounterView(projectID: id)
+            }
+        }
+        .onAppear {
+            // スクリーンショット用：`-demo -demoScreen counter` で最初のプロジェクトを開く
+            let arguments = ProcessInfo.processInfo.arguments
+            if WatchStore.isDemo, arguments.contains("counter"), let first = store.projects.first {
+                path = [first.id]
             }
         }
     }

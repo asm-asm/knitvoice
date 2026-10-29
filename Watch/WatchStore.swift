@@ -16,8 +16,16 @@ final class WatchStore: NSObject, WCSessionDelegate {
     @ObservationIgnored private var pendingBeforeActivation: [[String: Any]] = []
     private static let cacheKey = "watchSnapshotCache"
 
+    /// App Store のスクリーンショット用（起動引数 `-demo`）
+    static let isDemo = ProcessInfo.processInfo.arguments.contains("-demo")
+
     override init() {
         super.init()
+        if Self.isDemo {
+            projects = Self.demoProjects
+            notice = "次の段は増し目"
+            return
+        }
         if let data = defaults.data(forKey: Self.cacheKey),
            let snapshot = SyncCoding.decode(WatchSnapshot.self, from: data) {
             projects = snapshot.projects
@@ -27,6 +35,19 @@ final class WatchStore: NSObject, WCSessionDelegate {
             WCSession.default.activate()
         }
     }
+
+    private static let demoProjects: [WatchProjectSnapshot] = [
+        WatchProjectSnapshot(
+            id: UUID(), name: "モヘアのセーター", completedRows: 29,
+            config: CounterConfig(mode: .set, rowsPerRepeat: 2, repeatsPerSet: 3, targetSets: 10),
+            reminders: [], memos: [], updatedAt: Date()
+        ),
+        WatchProjectSnapshot(
+            id: UUID(), name: "ベビーブランケット", completedRows: 63,
+            config: CounterConfig(mode: .simple, targetRows: 120),
+            reminders: [], memos: [], updatedAt: Date()
+        ),
+    ]
 
     func project(id: UUID) -> WatchProjectSnapshot? {
         projects.first { $0.id == id }
