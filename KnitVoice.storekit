@@ -1,0 +1,40 @@
+{
+  "identifier" : "6B0C1F4E-6A2B-4E0D-9C2B-1F4D2E6A7B10",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "500",
+      "familyShareable" : false,
+      "internalID" : "6739100001",
+      "localizations" : [
+        {
+          "description" : "プロジェクトを無制限に作成できます",
+          "displayName" : "プロジェクト無制限",
+          "locale" : "ja"
+        }
+      ],
+      "productID" : "knitvoice.unlock",
+      "referenceName" : "Unlock",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_applicationInternalID" : "6739100000",
+    "_developerTeamID" : "",
+    "_failTransactionsEnabled" : false,
+    "_locale" : "ja",
+    "_storefront" : "JPN",
+    "_storeKitErrors" : [
+
+    ]
+  },
+  "subscriptionGroups" : [
+
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}

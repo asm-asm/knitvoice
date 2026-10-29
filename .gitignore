@@ -1,0 +1,11 @@
+# XcodeGen の生成物
+*.xcodeproj
+Config/*.plist
+Config/*.entitlements
+
+# Xcode
+DerivedData/
+build/
+xcuserdata/
+*.xcuserstate
+.DS_Store
