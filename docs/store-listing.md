@@ -76,9 +76,29 @@ App Store Review Guidelines に合わせた注意点：
 データの収集なし（データは端末内のみ、音声は保存・送信しない、解析・広告なし、購入は Apple が処理）
 
 ## 審査メモ（App Review への連絡事項）
-- 編み物の段数を、声のコマンド（「次」「戻る」「今どこ」）で数えるアプリです。カウンター画面右下のマイクボタンをオンにすると、マイクと音声認識（SFSpeechRecognizer、日本語）を使います。対応端末では端末内で認識します。
-- 音声は録音・保存・送信しません。開発者のサーバーはなく、外部への通信はありません。
-- 声のコマンドは日本語のみです。画面をタップしても同じようにカウントできます。
-- 無料版ではプロジェクトを1つまで作れます。買い切りの非消耗型アプリ内課金「プロジェクト無制限」を購入すると、無制限に作れます。購入画面は、プロジェクトが1つある状態でプロジェクト一覧右上の「＋」を押すと表示されます。また、一覧左上の歯車 →「プロジェクトを無制限にする」からも開けます。
-- Apple Watch アプリ、ホーム画面のウィジェット（App Intents による＋1/−1）、ロック画面のウィジェット（表示のみ）、iOS 18 のコントロール（＋1）に対応しています。
-- 日本語が話せなくても、カウンター画面の大きなボタンをタップすれば、カウント・リマインド・メモ・履歴などすべての機能を確認できます。
+1. SCREEN RECORDINGS (physical device, latest iOS, with audio)
+https://asm-asm.github.io/knitvoice/review/
+Recording 1 (app flow) starts from launching the app on the Home Screen and shows: creating a project, counting rows by tapping and −1, the microphone explanation screen and permissions, counting by voice ("tsugi" = next, "modoru" = back, "ima doko" = where am I), a reminder, a row memo read aloud, the count history, and Settings with the purchased In-App Purchase.
+Recording 2 (In-App Purchase) was recorded first on the same device: free limit of 1 project -> purchase "プロジェクト無制限" (non-consumable) -> creating a second project. Because the purchase had already been made, Recording 1 shows the purchased state.
+Both were recorded on an iPad (the app is an iPhone app running in compatibility mode); the developer tests on this physical device.
+
+2. PURPOSE AND TARGET AUDIENCE
+A row counter for people who hand knit or crochet. While knitting, both hands hold the needles, so tapping a counter app interrupts the work and people often lose count. This app counts rows by short voice commands, and reads the position aloud ("row 2", "repeat 2", "entered set 3"). It supports pattern repeats in three levels (set / repeat / row, e.g. "2 rows x 3 repeats = 1 set"), reminders for specific rows (e.g. "increase on row 20"), and per-row memos.
+
+3. HOW TO USE (no login, no account, no sample files needed)
+- Tap "+" on the project list (or "プロジェクトを作成") to create a project. Choose "段のみ" (rows only) or "セット・回・段" (set / repeat / row) and tap "作成".
+- Open the project. Tap the large area in the center to count +1. The "−1" button at the bottom left counts back.
+- Voice: tap the round microphone button at the bottom right. An explanation screen appears; tap "次へ" (Next), then allow Microphone and Speech Recognition. Say "tsugi" (+1), "modoru" (−1) or "ima doko" (read the position). Voice commands are Japanese only; every feature can also be used by tapping.
+- Reminders and memos: tap the sliders icon at the top right of the counter screen (project settings). "この段にメモ" (pencil icon) adds a memo to the current row.
+- History: tap "最後のカウント" (last count) under the counter.
+- In-App Purchase: the free version allows 1 project. With one project created, tap "+" on the project list to open the purchase screen, or open it from the gear icon at the top left -> "プロジェクトを無制限にする". "購入を復元" (Restore Purchases) is on the same screens.
+- Also included: an Apple Watch app (counts with buttons / Digital Crown), Home Screen widgets (+1/−1 via App Intents), Lock Screen widgets (display only), and an iOS 18 Control (+1).
+
+4. EXTERNAL SERVICES
+None. There is no server, no account, no analytics, no ads and no AI service. The app only uses Apple frameworks on the device: Speech (SFSpeechRecognizer, on-device recognition when supported), AVFoundation (speech synthesis), StoreKit 2 (In-App Purchase, processed by Apple), WatchConnectivity (sync with the user's own Apple Watch), WidgetKit / App Intents, and SwiftData. Audio is never recorded, stored or sent by the app.
+
+5. REGIONAL DIFFERENCES
+The app works the same in all regions. The user interface and the voice commands are in Japanese; the voice commands use Japanese speech recognition regardless of region. All features can be used by tapping in any region.
+
+6. REGULATED INDUSTRY / THIRD-PARTY MATERIAL
+Not applicable. The app does not operate in a regulated industry and contains no third-party protected material.
