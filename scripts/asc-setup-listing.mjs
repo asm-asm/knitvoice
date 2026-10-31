@@ -98,8 +98,10 @@ const app = (await api("GET", `/v1/apps?filter[bundleId]=${BUNDLE_ID}`)).data[0]
 // 編集できるアプリ情報（公開中のものしかなければそれを見る）
 const appInfos = (await api("GET", `/v1/apps/${app.id}/appInfos`)).data;
 const appInfo = appInfos.find((info) => info.attributes.state !== "READY_FOR_DISTRIBUTION") ?? appInfos[0];
+// 提出準備中、または審査から戻されて編集できるバージョン
+const editableStates = ["PREPARE_FOR_SUBMISSION", "REJECTED", "METADATA_REJECTED", "DEVELOPER_REJECTED"];
 let version = (await getAll(`/v1/apps/${app.id}/appStoreVersions`)).find(
-  (v) => v.attributes.appStoreState === "PREPARE_FOR_SUBMISSION",
+  (v) => editableStates.includes(v.attributes.appStoreState),
 );
 if (!version && newVersionString) {
   if (!apply) {
