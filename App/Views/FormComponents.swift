@@ -18,14 +18,11 @@ struct CounterConfigSection: View {
             .pickerStyle(.segmented)
 
             if mode == .set {
-                HStack(spacing: 6) {
-                    NumberField(value: $rowsPerRepeat)
-                    Text("段 ×")
-                    NumberField(value: $repeatsPerSet)
-                    Text("回 ＝ 1セット")
-                }
-                Text("1セット＝\(max(1, rowsPerRepeat) * max(1, repeatsPerSet))段")
-                    .foregroundStyle(.secondary)
+                CountStepperRow(title: "1回の段数", unit: "段", value: $rowsPerRepeat)
+                CountStepperRow(title: "1セットの回数", unit: "回", value: $repeatsPerSet)
+                Text("\(max(1, rowsPerRepeat))段 × \(max(1, repeatsPerSet))回 ＝ 1セット（\(max(1, rowsPerRepeat) * max(1, repeatsPerSet))段）")
+                    .font(.headline)
+                    .foregroundStyle(.tint)
                 OptionalCountField(title: "目標セット数", unit: "セット", value: $targetSets, defaultValue: 5)
             } else {
                 OptionalCountField(title: "目標段数", unit: "段", value: $targetRows, defaultValue: 50)
@@ -34,22 +31,72 @@ struct CounterConfigSection: View {
     }
 }
 
+/// 「1回の段数　［2］段　［−｜＋］」の1行。
+struct CountStepperRow: View {
+    let title: String
+    let unit: String
+    @Binding var value: Int
+
+    var body: some View {
+        HStack {
+            Text(title)
+            Spacer()
+            NumberField(value: $value)
+            Text(unit)
+            Stepper("", value: $value, in: 1...999)
+                .labelsHidden()
+        }
+    }
+}
+
 /// 1以上の整数の入力欄。
+/// 押すと中身を空にして、打った数字に置き換える（後ろに足されて「2」→「24」にならないように）。
+/// 打った数字はその場で反映し、何も打たずに離れたら元の数字に戻す。
 struct NumberField: View {
     @Binding var value: Int
     var minimum = 1
 
+    @State private var text = ""
+    @FocusState private var focused: Bool
+
     var body: some View {
-        TextField("", value: $value, format: .number)
+        TextField("\(value)", text: $text)
             .keyboardType(.numberPad)
+            .focused($focused)
             .multilineTextAlignment(.center)
             .textFieldStyle(.roundedBorder)
             .frame(width: 64)
             .monospacedDigit()
+            .onAppear { text = "\(value)" }
+            .onChange(of: focused) { _, isFocused in
+                text = isFocused ? "" : "\(value)"
+            }
+            .onChange(of: text) { _, newText in
+                let digits = String(newText.filter(\.isASCIIDigit).prefix(5))
+                if digits != newText {
+                    text = digits
+                    return
+                }
+                if let number = Int(digits), number >= minimum {
+                    value = number
+                }
+            }
             .onChange(of: value) { _, newValue in
-                if newValue < minimum { value = minimum }
+                if !focused { text = "\(newValue)" }
+            }
+            .toolbar {
+                ToolbarItemGroup(placement: .keyboard) {
+                    if focused {
+                        Spacer()
+                        Button("完了") { focused = false }
+                    }
+                }
             }
     }
+}
+
+private extension Character {
+    var isASCIIDigit: Bool { ("0"..."9").contains(self) }
 }
 
 /// 「なし」にできる目標値。

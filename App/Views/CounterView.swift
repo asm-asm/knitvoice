@@ -123,6 +123,11 @@ private struct CounterScreen: View {
                     Text(display.total)
                         .font(.title3)
                         .foregroundStyle(.secondary)
+                    if project.mode == .set {
+                        Text("1セット＝\(project.config.safeRowsPerRepeat)段 × \(project.config.safeRepeatsPerSet)回")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
                     if let note = display.note {
                         Text(note)
                             .font(.headline)
